@@ -5,6 +5,7 @@ import {
   useMemo,
   useState,
 } from "react";
+
 import { makeInputStringChangeHandler } from "../../utils";
 import {
   IntermediateReminderTicketStatusOptions,
@@ -21,7 +22,8 @@ type ReminderFormProps = {
   handleChange: (data: Data) => void;
 };
 
-const MESSAGE_FORM = "message-form";
+const TEXT_FIELD = "text-form";
+const TICKET_STATUS_FIELD = "ticket-status-field";
 
 export const ReminderForm = ({
   idx,
@@ -30,7 +32,6 @@ export const ReminderForm = ({
   handleChange,
 }: ReminderFormProps) => {
   const [text, setText] = useState(data.text);
-  const [status, setStatus] = useState(data.status);
   const options = useMemo(() => {
     if (idx === 0 && isLast) return OnlyReminderTicketStatusOptions;
     if (isLast) return LastReminderTicketStatusOptions;
@@ -42,18 +43,15 @@ export const ReminderForm = ({
   ]);
   const handleChangeTicketStatus = useCallback(
     (event: ChangeEvent<HTMLSelectElement>) => {
-      setStatus(event.target.value as TicketStatusValue);
+      const status = event.target.value as TicketStatusValue;
+      handleChange({ ...data, status });
     },
-    [setStatus]
+    [handleChange]
   );
 
   const handleCommitChangeText = useCallback(() => {
     handleChange({ ...data, text });
   }, [data, text, handleChange]);
-
-  const handleCommitChangeTicketStatus = useCallback(() => {
-    handleChange({ ...data, status });
-  }, [data, status, handleChange]);
 
   useEffect(() => {
     if (!isLast && data.status === TicketStatus.SOLVED) {
@@ -66,28 +64,33 @@ export const ReminderForm = ({
   return (
     <form className="flex flex-row gap-x-2">
       <article>
-        <label htmlFor={MESSAGE_FORM} className="block font-medium mb-1">
-          Message*
+        <label htmlFor={TEXT_FIELD} className="block font-medium mb-1">
+          Text*
         </label>
         <textarea
           onChange={handleChangeText}
           value={text}
           onBlur={handleCommitChangeText}
-          id={MESSAGE_FORM}
+          id={TEXT_FIELD}
           className="p-2 border-2 rounded-lg"
         />
       </article>
-      <select
-        value={data.status}
-        onChange={handleChangeTicketStatus}
-        onBlur={handleCommitChangeTicketStatus}
-      >
-        {options.map((value) => (
-          <option key={value} value={value}>
-            {value}
-          </option>
-        ))}
-      </select>
+      <section>
+        <label htmlFor={TICKET_STATUS_FIELD} className="block font-medium mb-1">
+          Ticket Status*
+        </label>
+        <select
+          value={data.status}
+          onChange={handleChangeTicketStatus}
+          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+        >
+          {options.map((value) => (
+            <option key={value} value={value}>
+              {value}
+            </option>
+          ))}
+        </select>
+      </section>
     </form>
   );
 };
